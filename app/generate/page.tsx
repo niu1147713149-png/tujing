@@ -69,7 +69,7 @@ export default function GeneratePage() {
       <div className="tj-container py-10">
         <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="tj-label">?? ? Step 1</p>
+            <p className="tj-label">?? / Step 1</p>
             <h1 className="mt-3 text-4xl font-medium tracking-[-0.04em] text-[#f7f8f8] md:text-5xl">
               ??????????
             </h1>
@@ -94,7 +94,7 @@ export default function GeneratePage() {
               {[
                 ['????', currentTemplate.name],
                 ['????', currentTemplate.ratio],
-                ['????', '???? ? ?? ? ????'],
+                ['????', '???? / ?? / ????'],
               ].map(([label, value]) => (
                 <div key={label} className="rounded-2xl border border-white/10 bg-black/20 p-4">
                   <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{label}</p>
@@ -175,7 +175,7 @@ export default function GeneratePage() {
               disabled={!prompt.trim() || submitting}
               className="tj-button-primary disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? '???????' : `???? ${currentTemplate.name}`}
+              {submitting ? '??????...' : `???? ${currentTemplate.name}`}
             </button>
             <button type="button" onClick={() => router.push('/')} className="tj-button-secondary">
               ????

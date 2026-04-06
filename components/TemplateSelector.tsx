@@ -29,15 +29,11 @@ export default function TemplateSelector({
           >
             <div className="absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top,rgba(113,112,255,0.18),transparent_70%)] opacity-80" />
             <div className="relative">
-              <div
-                className={`rounded-[22px] border border-white/10 bg-gradient-to-br ${template.colorClass} p-5`}
-              >
+              <div className={`rounded-[22px] border border-white/10 bg-gradient-to-br ${template.colorClass} p-5`}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className={`text-xs uppercase tracking-[0.26em] ${template.accentClass}`}>Template</p>
-                    <h3 className="mt-3 text-2xl font-medium tracking-[-0.03em] text-white">
-                      {template.name}
-                    </h3>
+                    <h3 className="mt-3 text-2xl font-medium tracking-[-0.03em] text-white">{template.name}</h3>
                   </div>
                   <div
                     className={`rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] ${
@@ -56,7 +52,7 @@ export default function TemplateSelector({
               <ul className="mt-5 space-y-2.5 text-sm text-slate-300">
                 {template.bulletPoints.map((point) => (
                   <li key={point} className="flex items-center gap-2">
-                    <span className="text-[#8f96ff]">{'•'}</span>
+                    <span className="text-[#8f96ff]">-</span>
                     <span>{point}</span>
                   </li>
                 ))}
