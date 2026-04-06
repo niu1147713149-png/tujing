@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+dist
+.env*.local
+.DS_Store
+*.log
+config/ai.config.json
+.omx/
+.omx-runtime/
+*.tsbuildinfo

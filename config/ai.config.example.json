@@ -1,0 +1,5 @@
+{
+  "domain": "https://generativelanguage.googleapis.com",
+  "apiKey": "YOUR_GEMINI_API_KEY",
+  "modelId": "gemini-2.5-flash-image"
+}
