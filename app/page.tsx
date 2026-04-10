@@ -39,8 +39,8 @@ export default function HomePage() {
 
   return (
     <main className="tj-shell min-h-screen">
-      <div className="tj-container py-8 md:py-10">
-        <div className="mb-10 flex items-center justify-between">
+      <div className="tj-container py-6 md:py-8">
+        <div className="mb-6 flex items-center justify-between">
           <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 shadow-soft backdrop-blur-md">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#7170ff] text-sm font-semibold text-white">
               T
@@ -55,23 +55,23 @@ export default function HomePage() {
           </div>
         </div>
 
-        <section className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+        <section className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div className="relative">
             <div className="mb-4 inline-flex rounded-full border border-[#7170ff]/25 bg-[#7170ff]/10 px-4 py-2 text-sm text-[#c7c8ff]">
               一句提示词，快速生成电商图
             </div>
-            <h1 className="tj-title max-w-4xl">
+            <h1 className="tj-title max-w-3xl text-3xl md:text-4xl">
               图鲸，把
               <span className="bg-gradient-to-r from-[#f7f8f8] via-[#c7c8ff] to-[#6ee7f9] bg-clip-text text-transparent">
                 高级感电商素材
               </span>
               做成一条可复用流程。
             </h1>
-            <p className="mt-6 max-w-2xl text-base leading-8 text-slate-300 md:text-lg">
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
               用更像产品而不是 demo 的方式组织出图流程：模板、提示词、配置检测、结果下载全部收在一个工作台里。
             </p>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <button type="button" onClick={() => router.push('/generate')} className="tj-button-primary">
                 进入图鲸工作台
               </button>
@@ -85,13 +85,13 @@ export default function HomePage() {
               </button>
             </div>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
               {[
                 ['文生图优先', '先验证可用性与稳定性'],
                 ['轻量预览规格', '先追速度，再做高分辨率'],
                 ['配置文件驱动', '域名 / Key / 模型 ID 可替换'],
               ].map(([title, description]) => (
-                <div key={title} className="tj-panel-soft p-4">
+                <div key={title} className="tj-panel-soft p-3">
                   <p className="text-sm font-medium text-white">{title}</p>
                   <p className="mt-2 text-sm leading-6 text-slate-400">{description}</p>
                 </div>
@@ -128,7 +128,7 @@ export default function HomePage() {
             ) : null}
           </div>
 
-          <div className="tj-panel relative overflow-hidden p-4 md:p-6">
+          <div className="tj-panel relative overflow-hidden p-3 md:p-5">
             <div className="absolute inset-x-10 top-0 h-32 rounded-full bg-[#7170ff]/20 blur-3xl" />
             <div className="relative">
               <div className="mb-4 flex items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-3">

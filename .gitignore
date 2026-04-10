@@ -9,3 +9,4 @@ config/ai.config.json
 .omx/
 .omx-runtime/
 *.tsbuildinfo
+.gstack/

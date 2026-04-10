@@ -88,7 +88,7 @@ export default function TaskResultPage({ params }: { params: { taskId: string } 
     })
     const data = (await response.json()) as { taskId?: string; error?: string }
     if (!response.ok || !data.taskId) {
-      setLoadError(data.error ?? '???????')
+      setLoadError(data.error ?? '重新生成失败，请重试')
       return
     }
     router.push(`/result/${data.taskId}`)
@@ -98,9 +98,9 @@ export default function TaskResultPage({ params }: { params: { taskId: string } 
   if (loadError && !task) {
     return (
       <main className="tj-shell min-h-screen">
-        <div className="tj-container py-10">
-          <div className="rounded-[32px] border border-rose-400/20 bg-rose-500/10 p-8 shadow-soft backdrop-blur-xl">
-            <h1 className="text-3xl font-medium text-white">??????</h1>
+        <div className="tj-container py-6 md:py-8">
+          <div className="rounded-[28px] border border-rose-400/20 bg-rose-500/10 p-6 shadow-soft backdrop-blur-xl">
+            <h1 className="text-2xl font-medium text-white">加载失败</h1>
             <p className="mt-4 text-sm leading-7 text-rose-100">{loadError}</p>
           </div>
         </div>
@@ -111,17 +111,17 @@ export default function TaskResultPage({ params }: { params: { taskId: string } 
   if (!task || task.status === 'queued' || task.status === 'processing') {
     return (
       <main className="tj-shell min-h-screen">
-        <div className="tj-container py-10">
-          <div className="mb-8 max-w-4xl">
-            <p className="tj-label">?? ? Step 2</p>
-            <h1 className="mt-3 text-4xl font-medium tracking-[-0.04em] text-[#f7f8f8] md:text-5xl">
-              ??????
+        <div className="tj-container py-6 md:py-8">
+          <div className="mb-6 max-w-3xl">
+            <p className="tj-label">图鲸 / Step 2</p>
+            <h1 className="mt-2 text-3xl font-medium tracking-[-0.04em] text-[#f7f8f8] md:text-4xl">
+              正在生成中
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">
-              ???? ID?{params.taskId}????????????????????????????????
+              任务 ID：{params.taskId}，图鲸正在调用模型生成图片，请稍候，完成后将自动展示结果。
             </p>
           </div>
-          <div className="mx-auto flex min-h-[60vh] max-w-3xl items-center justify-center">
+          <div className="mx-auto flex min-h-[50vh] max-w-3xl items-center justify-center">
             <GeneratingLoader templateName={currentTemplate.name} />
           </div>
         </div>
@@ -132,21 +132,21 @@ export default function TaskResultPage({ params }: { params: { taskId: string } 
   if (task.status === 'failed') {
     return (
       <main className="tj-shell min-h-screen">
-        <div className="tj-container py-10">
-          <div className="rounded-[32px] border border-rose-400/20 bg-rose-500/10 p-8 shadow-soft backdrop-blur-xl">
-            <h2 className="text-2xl font-medium text-white">????</h2>
+        <div className="tj-container py-6 md:py-8">
+          <div className="rounded-[28px] border border-rose-400/20 bg-rose-500/10 p-6 shadow-soft backdrop-blur-xl">
+            <h2 className="text-xl font-medium text-white">生成失败</h2>
             <p className="mt-3 text-sm leading-7 text-rose-100">{task.errorMessage}</p>
             {task.requestId ? (
               <p className="mt-3 text-xs uppercase tracking-[0.24em] text-rose-200/80">
-                Request ID ? {task.requestId}
+                Request ID / {task.requestId}
               </p>
             ) : null}
             <div className="mt-6 flex flex-col gap-3 md:flex-row">
               <button type="button" onClick={handleRetryVariant} className="tj-button-primary bg-rose-500 hover:bg-rose-400">
-                ?? 1 ?
+                再来 1 张
               </button>
               <button type="button" onClick={() => router.push('/generate')} className="tj-button-secondary">
-                ???????
+                返回修改提示词
               </button>
             </div>
           </div>
@@ -157,26 +157,26 @@ export default function TaskResultPage({ params }: { params: { taskId: string } 
 
   return (
     <main className="tj-shell min-h-screen">
-      <div className="tj-container py-10">
-        <div className="mb-8">
-          <p className="tj-label">?? ? Step 2</p>
-          <h1 className="mt-3 text-4xl font-medium tracking-[-0.04em] text-[#f7f8f8] md:text-5xl">
-            ??????
+      <div className="tj-container py-6 md:py-8">
+        <div className="mb-6">
+          <p className="tj-label">图鲸 / Step 2</p>
+          <h1 className="mt-2 text-3xl font-medium tracking-[-0.04em] text-[#f7f8f8] md:text-4xl">
+            生成结果预览
           </h1>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300">
-            ???????????????????????????????????
+            以下是本次生成的结果，你可以下载图片、重新生成变体，或返回修改提示词。
           </p>
         </div>
 
-        <section className="mb-6 grid gap-4 md:grid-cols-2">
-          <div className="tj-panel p-5">
-            <p className="tj-label">????</p>
-            <h2 className="mt-3 text-2xl font-medium text-white">{currentTemplate.name}</h2>
+        <section className="mb-5 grid gap-3 md:grid-cols-2">
+          <div className="tj-panel p-4">
+            <p className="tj-label">当前模板</p>
+            <h2 className="mt-2 text-xl font-medium text-white">{currentTemplate.name}</h2>
             <p className="mt-2 text-sm text-slate-300">{currentTemplate.ratio}</p>
           </div>
-          <div className="tj-panel p-5">
-            <p className="tj-label">Prompt ??</p>
-            <p className="mt-3 line-clamp-4 text-sm leading-7 text-slate-200">{task.prompt}</p>
+          <div className="tj-panel p-4">
+            <p className="tj-label">Prompt 内容</p>
+            <p className="mt-2 line-clamp-4 text-sm leading-7 text-slate-200">{task.prompt}</p>
           </div>
         </section>
 
