@@ -10,3 +10,4 @@ config/ai.config.json
 .omx-runtime/
 *.tsbuildinfo
 .gstack/
+data/tasks.json

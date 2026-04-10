@@ -87,7 +87,7 @@ export default function HomePage() {
 
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               {[
-                ['文生图优先', '先验证可用性与稳定性'],
+                ['文生图生成', '输入描述，直接生成高质量图像'],
                 ['轻量预览规格', '先追速度，再做高分辨率'],
                 ['配置文件驱动', '域名 / Key / 模型 ID 可替换'],
               ].map(([title, description]) => (
@@ -191,7 +191,7 @@ export default function HomePage() {
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="tj-panel-soft p-5">
                     <p className="tj-label">品牌气质</p>
-                    <p className="mt-3 text-lg font-medium text-white">更像专业工具，而不是草台 demo</p>
+                    <p className="mt-3 text-lg font-medium text-white">专业工具级体验</p>
                     <p className="mt-2 text-sm leading-6 text-slate-400">
                       深色底、弱边框、强层级，把视觉焦点让给生成结果本身。
                     </p>
