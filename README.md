@@ -1,50 +1,46 @@
-﻿# 图鲸 MVP 项目说明
+# 图鲸项目说明
 
-> 一句提示词，快速生成主图、详情页长图和营销海报。
+> 图鲸当前已收口为前后端分离架构：`frontend/` + `backend/`。
 
 ---
 
 ## 项目简介
 
-图鲸是一个面向电商场景的 AI 出图工具 MVP，当前聚焦最小可运行链路：
+图鲸是一个面向电商场景的 AI 出图工具，当前主流程为：
 
-- 选择模板
-- 填写提示词
-- 服务端调用 Gemini 兼容接口生成图片
-- 结果页轮询任务状态并展示图片
+- 前端工作台选择模板并填写提示词
+- 后端创建任务并异步执行生成
+- 前端轮询任务状态并展示结果
 
-当前版本已经从“单次请求硬等结果”升级为“任务型生成流程”，减少了长请求超时对前端体验的影响。
+当前版本不再使用根目录 Next.js 一体化结构，唯一有效入口为：
 
-> 开发前请优先阅读并遵守：`docs/PROJECT_STANDARDS.md`
+- `frontend/`：Vite + React 前端
+- `backend/`：FastAPI 后端
+
+开发前请优先阅读并遵守：`docs/PROJECT_STANDARDS.md`
 
 ---
 
-## 当前功能状态
+## 当前目录结构
 
-### 已完成
-- Next.js 14 + TypeScript + Tailwind CSS 基础框架
-- 品牌首页 `/`
-- 生成页 `/generate`
-- 任务结果页 `/result/[taskId]`
-- 模板选择组件
-- Prompt 示例快捷选择
-- 任务创建接口 `/api/tasks`
-- 任务查询接口 `/api/tasks/[taskId]`
-- 再来一张接口 `/api/tasks/[taskId]/regenerate`
-- 配置检测接口 `/api/config-check`
-- Gemini 兼容图片生成封装
-- 文件型任务存储（无新增依赖版本）
-
-### 进行中
-- 中文文案与编码稳定性清理
-- 首页/生成页/结果页的高级感视觉细节优化
-- 任务流下的错误提示与状态展示增强
-
-### 下一步
-- 完整项目规范文档（前端 UI / 后端 / 测试）
-- 更完整的任务状态信息展示
-- 历史任务记录与任务列表页
-- 文件型任务存储升级为 SQLite 持久化
+```text
+tujing/
+├─ frontend/
+│  ├─ public/
+│  └─ src/
+│     ├─ api/
+│     ├─ components/
+│     └─ pages/
+├─ backend/
+│  ├─ app/
+│  │  ├─ routers/
+│  │  └─ services/
+│  └─ data/
+├─ config/
+├─ docs/
+├─ scripts/
+└─ Makefile
+```
 
 ---
 
@@ -52,66 +48,78 @@
 
 | 层级 | 技术 | 说明 |
 |------|------|------|
-| 前端框架 | Next.js 14 App Router | 页面、路由、API 一体化 |
-| UI | React 18 | 组件化页面结构 |
-| 类型系统 | TypeScript | 严格类型约束 |
-| 样式 | Tailwind CSS | 原子化样式与设计系统扩展 |
-| 任务存储 | 本地 JSON 文件 | 当前阶段的轻量任务持久化 |
-| 模型调用 | Gemini 兼容 API | 文生图生成 |
+| 前端 | Vite + React 18 + TypeScript | 页面、路由、工作台交互 |
+| 样式 | Tailwind CSS | 统一视觉系统 |
+| 数据请求 | TanStack Query | 任务查询、轮询、变更 |
+| 后端 | FastAPI | 任务接口、任务调度、静态结果输出 |
+| 存储 | SQLite | 当前任务持久化 |
+| 模型调用 | Gemini 兼容 API | 图片生成 |
 
 ---
 
-## 目录结构
+## 本地启动
 
-```text
-tujing/
-├─ app/
-│  ├─ page.tsx
-│  ├─ generate/page.tsx
-│  ├─ result/page.tsx
-│  ├─ result/[taskId]/page.tsx
-│  └─ api/
-│     ├─ config-check/route.ts
-│     ├─ generate/route.ts
-│     ├─ upload/route.ts
-│     └─ tasks/
-│        ├─ route.ts
-│        └─ [taskId]/
-│           ├─ route.ts
-│           └─ regenerate/route.ts
-│
-├─ components/
-├─ config/
-├─ docs/
-├─ lib/
-│  ├─ ai-config.ts
-│  ├─ gemini.ts
-│  ├─ task-runner.ts
-│  └─ task-store.ts
-└─ data/
-```
-
----
-
-## 当前运行方式
+### 1) 启动后端
 
 ```bash
-npm install
-npm run build
-npm run start -- -p 3001
+cd backend
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+### 2) 启动前端
+
+```bash
+cd frontend
+npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
 访问：
 
 ```bash
-http://127.0.0.1:3001
+http://127.0.0.1:5173
+```
+
+说明：
+
+- Vite 会把 `/api` 和 `/outputs` 代理到 `http://127.0.0.1:8000`
+- 如果 5173 被占用，可以改端口，但要按实际端口访问
+
+---
+
+## 构建检查
+
+### 前端构建
+
+```bash
+cd frontend
+npm run build
+```
+
+### 本地烟测
+
+```bash
+make smoke-generate
+```
+
+说明：
+
+- 会自动清理 5173 / 8000 旧进程
+- 会自动启动 frontend / backend
+- 会用 Playwright 走一遍“开始生成 -> 跳结果页”链路
+- 测试日志会输出前端 / 后端 / 浏览器信息，方便排查
+
+### 后端依赖安装
+
+```bash
+cd backend
+pip install -r requirements.txt
 ```
 
 ---
 
 ## 配置文件
 
-项目使用：
+项目使用根目录配置：
 
 ```text
 config/ai.config.json
@@ -127,37 +135,29 @@ config/ai.config.json
 }
 ```
 
-说明：
+字段说明：
+
 - `domain`：上游 Gemini 兼容网关
 - `apiKey`：模型服务密钥
-- `modelId`：当前图片模型 ID
+- `modelId`：图片模型 ID
 
 ---
 
-## 生成流程
+## 当前接口
 
-```text
-用户在 /generate 选择模板并填写 prompt
--> POST /api/tasks 创建任务
--> 返回 taskId
--> 跳转 /result/[taskId]
--> 前端轮询 GET /api/tasks/[taskId]
--> 任务成功后展示 resultUrl
-```
+- `POST /api/tasks`
+- `GET /api/tasks`
+- `GET /api/tasks/{taskId}`
+- `GET /api/tasks/group/{groupId}`
+- `GET /api/tasks/groups/{groupId}/download`
+- `POST /api/tasks/{taskId}/regenerate`
+- `GET /outputs/*`
 
 ---
 
-## 注意事项
+## 说明
 
-- 当前是文生图优先版本，不依赖上传参考图
-- 当前使用本地文件型任务存储，适合开发阶段
 - 用户可见文案默认必须保持简体中文
-- 发现 `? / ?? / ??? / 乱码` 视为缺陷，必须继续修复
-
----
-
-## 版本状态
-
-- 品牌名称：图鲸 / Tujing
-- 当前阶段：MVP / Task-based generation flow
-- 维护目标：先稳定任务流，再升级存储与历史记录
+- 发现 `?`、`??`、`???`、乱码，视为缺陷
+- 当前输出文件位于 `backend/data/outputs`
+- 首页 Showcase 静态图片位于 `frontend/public/images`

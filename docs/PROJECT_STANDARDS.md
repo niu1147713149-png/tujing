@@ -91,7 +91,6 @@
 
 - 品牌表达
 - 模式说明
-- 配置检测入口
 - 进入生成工作台
 
 首页不是配置页，也不是结果页，不应堆积过多业务细节。
@@ -125,15 +124,15 @@
 
 - 单一职责
 - 文案尽量由页面层控制
-- 公共模板数据集中在 `components/template-options.ts`
+- 公共模板数据集中在 `frontend/src/components/template-options.ts`
 - 视觉基础组件应复用全局 class 规则，不得各自随意拉风格
 
 当前关键组件：
 
 - `TemplateSelector`
 - `GeneratingLoader`
-- `ResultDisplay`
-- `ImageUploader`
+- `HomePage`
+- `ResultPage`
 
 ### 4.4 视觉层级规范
 
@@ -208,9 +207,12 @@
 
 推荐边界：
 
-- `app/`：页面与 API 路由
-- `components/`：页面组件与复用组件
-- `lib/`：业务逻辑、任务流、配置、模型调用
+- `frontend/src/pages/`：页面
+- `frontend/src/components/`：前端组件
+- `frontend/src/api/`：前端请求封装
+- `backend/app/routers/`：后端 API 路由
+- `backend/app/services/`：任务执行、模型调用、图片存储
+- `backend/app/`：数据库、模型、配置
 - `config/`：本地配置模板
 - `docs/`：规范与设计文档
 
@@ -241,7 +243,7 @@
 后端逻辑必须分层：
 
 #### API 路由层
-位置：`app/api/*`
+位置：`backend/app/routers/*`
 
 职责：
 
@@ -254,7 +256,7 @@
 - 在 route 文件里堆大量核心业务逻辑
 
 #### 任务存储层
-位置：`lib/task-store.ts`
+位置：`backend/app/services/task_store.py`
 
 职责：
 
@@ -263,7 +265,7 @@
 - 更新任务状态
 
 #### 任务执行层
-位置：`lib/task-runner.ts`
+位置：`backend/app/services/task_runner.py`
 
 职责：
 
@@ -271,7 +273,7 @@
 - 控制单任务执行
 
 #### 模型调用层
-位置：`lib/gemini.ts`
+位置：`backend/app/services/gemini.py`
 
 职责：
 
@@ -279,7 +281,7 @@
 - 统一 timeout / retry / 结果解析
 
 #### 配置层
-位置：`lib/ai-config.ts`
+位置：`backend/app/config.py`
 
 职责：
 
@@ -291,14 +293,12 @@
 当前任务流接口：
 
 - `POST /api/tasks`
-- `GET /api/tasks/[taskId]`
-- `POST /api/tasks/[taskId]/regenerate`
-- `POST /api/config-check`
-
-兼容保留接口：
-
-- `POST /api/generate`
-- `POST /api/upload`
+- `GET /api/tasks`
+- `GET /api/tasks/{taskId}`
+- `GET /api/tasks/group/{groupId}`
+- `GET /api/tasks/groups/{groupId}/download`
+- `POST /api/tasks/{taskId}/regenerate`
+- `GET /outputs/*`
 
 ### 6.4 返回规范
 
@@ -325,11 +325,12 @@
 
 ### 6.6 存储规范
 
-当前阶段允许使用文件型任务存储。  
-后续升级 SQLite 时，必须：
+当前阶段使用 SQLite 持久化任务数据。  
+后续如果升级到远程数据库或对象存储，必须：
 
-- 保持 `task-store` 抽象边界
+- 保持任务存储抽象边界
 - 不把数据库逻辑散落在 route 里
+- 不把图片结果直接写入前端静态目录
 
 ---
 
@@ -342,16 +343,16 @@
 1. 首页 `/`
 2. 生成页 `/generate`
 3. 结果页 `/result/[taskId]`
-4. 配置检测接口
-5. 任务创建接口
-6. 任务查询接口
+4. 任务创建接口
+5. 任务查询接口
+6. 批次下载接口
 7. 再来一张接口
 
 ### 7.2 最低命令检查
 
 ```bash
-npm run build
-npx tsc --noEmit
+cd frontend && npm run build
+cd backend && python -m compileall app
 ```
 
 ### 7.3 任务流专项检查
@@ -428,4 +429,3 @@ npx tsc --noEmit
 - 先任务流，再高级功能
 - 先中文正确，再视觉精修
 - 发现可见乱码，必须继续修，不得忽略
-

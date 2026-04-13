@@ -1,0 +1,17 @@
+[project]
+name = "tujing-backend"
+version = "0.1.0"
+description = "图鲸 AI 电商图片生成后端"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115,<1",
+    "uvicorn[standard]>=0.32,<1",
+    "sqlalchemy[asyncio]>=2.0,<3",
+    "aiosqlite>=0.20,<1",
+    "httpx>=0.27,<1",
+    "python-multipart>=0.0.12",
+    "aiofiles>=24,<25",
+]
+
+[project.scripts]
+dev = "uvicorn app.main:app --reload --port 8000"

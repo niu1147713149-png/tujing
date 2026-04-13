@@ -10,4 +10,13 @@ config/ai.config.json
 .omx-runtime/
 *.tsbuildinfo
 .gstack/
+.codex/
+.playwright-cli/
 data/tasks.json
+backend/data/*.db
+backend/data/outputs/
+frontend-dev.log
+frontend-dev.err.log
+pw-*.txt
+**/__pycache__/
+*.pyc
