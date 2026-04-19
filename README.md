@@ -117,6 +117,186 @@ pip install -r requirements.txt
 
 ---
 
+## Docker 单镜像部署
+
+当前仓库支持打成一个镜像，在 Ubuntu 上直接运行：
+
+- 前端端口：`3888`
+- 后端端口：`8000`
+
+镜像内结构：
+
+- `nginx` 提供前端静态页面，监听 `3888`
+- `uvicorn` 提供 FastAPI 后端，监听 `8000`
+- 前端访问 `/api` 和 `/outputs` 时，由容器内 `nginx` 反向代理到后端
+
+### 1) 构建镜像
+
+在仓库根目录执行：
+
+```bash
+docker build -t tujing:latest .
+```
+
+### 2) 准备运行目录
+
+建议在 Ubuntu 服务器准备：
+
+```text
+/opt/tujing/
+├─ config/
+│  └─ ai.config.json
+└─ data/
+```
+
+其中：
+
+- `/opt/tujing/config/ai.config.json`：真实模型配置
+- `/opt/tujing/data/`：SQLite 数据库和输出图片持久化目录
+
+可以先复制示例文件再修改：
+
+```bash
+mkdir -p /opt/tujing/config /opt/tujing/data
+cp config/ai.config.example.json /opt/tujing/config/ai.config.json
+```
+
+### 3) 运行容器
+
+```bash
+docker run -d \
+  --name tujing \
+  -p 3888:3888 \
+  -p 8000:8000 \
+  -v /opt/tujing/config/ai.config.json:/app/config/ai.config.json:ro \
+  -v /opt/tujing/data:/app/backend/data \
+  --restart unless-stopped \
+  tujing:latest
+```
+
+### 3.1) 更推荐：在 Ubuntu 上用 docker compose 直接拉起
+
+如果你是在 Ubuntu 服务器里直接拉代码部署，推荐用仓库自带的：
+
+- `docker-compose.yml`
+- `scripts/docker-up.sh`
+- `scripts/docker-redeploy.sh`
+
+先准备真实配置：
+
+```bash
+cp config/ai.config.example.json config/ai.config.json
+```
+
+然后编辑：
+
+```text
+config/ai.config.json
+```
+
+再执行：
+
+```bash
+chmod +x scripts/docker-up.sh
+./scripts/docker-up.sh
+```
+
+如果你后续是“代码已拉到 Ubuntu 服务器，只想一键更新到最新版本并重启容器”，推荐直接用：
+
+```bash
+chmod +x scripts/docker-redeploy.sh
+./scripts/docker-redeploy.sh
+```
+
+这个脚本会：
+
+1. 检查运行配置是否存在
+2. 默认执行 `git fetch --all --prune` + `git pull --ff-only`
+3. 调用 `scripts/docker-up.sh`
+4. 自动完成重建与重启
+
+如果当前目录有未提交修改，脚本会停止，避免把本地改动覆盖掉。
+
+如果你明确只想“跳过 git pull，直接用当前代码重建”，可以：
+
+```bash
+TUJING_SKIP_GIT_PULL=1 ./scripts/docker-redeploy.sh
+```
+
+默认会使用：
+
+- 配置文件：`./config/ai.config.json`
+- 数据目录：`./backend/data`
+- 前端端口：`3888`
+- 后端端口：`8000`
+
+如果你要自定义，也可以临时传环境变量：
+
+```bash
+TUJING_CONFIG_FILE=/opt/tujing/config/ai.config.json \
+TUJING_DATA_DIR=/opt/tujing/data \
+TUJING_FRONTEND_PORT=3888 \
+TUJING_BACKEND_PORT=8000 \
+./scripts/docker-up.sh
+```
+
+### 4) 访问方式
+
+- 前端：`http://<服务器IP>:3888`
+- 后端健康检查：`http://<服务器IP>:8000/api/health`
+
+### 5) 查看日志
+
+```bash
+docker logs -f tujing
+```
+
+### 6) 停止与重启
+
+```bash
+docker stop tujing
+docker start tujing
+docker restart tujing
+```
+
+如果使用 compose：
+
+```bash
+docker compose stop
+docker compose start
+docker compose restart
+```
+
+### 7) 更新镜像后重建
+
+```bash
+docker stop tujing
+docker rm tujing
+docker build -t tujing:latest .
+docker run -d \
+  --name tujing \
+  -p 3888:3888 \
+  -p 8000:8000 \
+  -v /opt/tujing/config/ai.config.json:/app/config/ai.config.json:ro \
+  -v /opt/tujing/data:/app/backend/data \
+  --restart unless-stopped \
+  tujing:latest
+```
+
+如果使用 compose，更简单：
+
+```bash
+docker compose up -d --build
+```
+
+说明：
+
+- 不要把真实 `config/ai.config.json` 直接打进镜像
+- 当前后端任务执行与 SQLite 数据库都更适合单实例运行
+- 如果后续要做多实例部署，需要先重构任务队列和存储方案
+
+---
+
 ## 配置文件
 
 项目使用根目录配置：

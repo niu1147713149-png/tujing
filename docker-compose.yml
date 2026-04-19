@@ -1,0 +1,14 @@
+services:
+  tujing:
+    image: tujing:latest
+    build:
+      context: .
+    container_name: tujing
+    restart: unless-stopped
+    ports:
+      - "${TUJING_FRONTEND_PORT:-3888}:3888"
+      - "${TUJING_BACKEND_PORT:-8000}:8000"
+    volumes:
+      - "${TUJING_CONFIG_FILE:-./config/ai.config.json}:/app/config/ai.config.json:ro"
+      - "${TUJING_DATA_DIR:-./backend/data}:/app/backend/data"
+
