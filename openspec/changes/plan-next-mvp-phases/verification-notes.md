@@ -21,6 +21,7 @@
   - 人工将任务状态置为 `processing`
   - 调用 `reset_stuck_tasks()` 后任务恢复为 `queued`
   - `list_pending_task_ids()` 能重新发现该任务，说明恢复链路进入可继续执行状态
+  - 以上仅覆盖服务层恢复逻辑，不等同于“服务启动后自动恢复执行”的运行级验证
 - 代码检查
   - `HistoryPage.tsx` 已展示模板、模型、任务数量、成功数、失败数、提示词摘要，并包含 loading / error / empty 三类状态
   - `HistoryPage.tsx` 已包含删除订单的明确确认提示，说明会同时删除任务与结果图且无法恢复
