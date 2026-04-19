@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -26,3 +27,7 @@ async def init_db() -> None:
 
     async with _engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        result = await conn.execute(text("PRAGMA table_info(tasks)"))
+        columns = {row[1] for row in result.fetchall()}
+        if "order_id" not in columns:
+            await conn.execute(text("ALTER TABLE tasks ADD COLUMN order_id VARCHAR"))

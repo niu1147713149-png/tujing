@@ -28,7 +28,7 @@ export default function TemplateSelector({
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className={`text-[10px] uppercase tracking-[0.28em] ${isActive ? 'text-[#c7c8ff]' : 'text-slate-500'}`}>
-                  Template
+                  模板
                 </p>
                 <h3 className="mt-2 text-lg font-medium text-white">{template.name}</h3>
               </div>

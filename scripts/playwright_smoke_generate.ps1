@@ -68,20 +68,35 @@ try {
     -RedirectStandardError $frontendErr `
     -PassThru
 
+  Wait-HttpReady -Url 'http://127.0.0.1:8000/api/health'
   Wait-HttpReady -Url 'http://127.0.0.1:8000/api/tasks'
-  Wait-HttpReady -Url 'http://127.0.0.1:5173/generate'
+  Wait-HttpReady -Url 'http://127.0.0.1:5173'
 
   playwright-cli close-all | Out-Null
-  playwright-cli open http://127.0.0.1:5173/generate | Out-Null
-  playwright-cli run-code "async page => { await page.getByRole('button', { name: '开始生成' }).click(); }" | Out-Null
+  playwright-cli open http://127.0.0.1:5173 | Out-Null
+  playwright-cli run-code @"
+async page => {
+  await page.getByRole('button', { name: '新建订单' }).click();
+  await page.getByPlaceholder('例如：王小姐的春季上新 / 批次 A...').fill('烟测订单');
+  await page.getByRole('button', { name: '进入专属工作台' }).click();
+  await page.waitForURL(/\/generate\//);
+  await page.getByRole('button', { name: '立即生成' }).click();
+  await page.waitForURL(/\/result\//);
+}
+"@ | Out-Null
   Start-Sleep -Seconds 3
 
   $pageUrl = (playwright-cli --raw eval "location.href").Trim('"', "`r", "`n", ' ')
+  $pageText = (playwright-cli --raw eval "document.body.innerText").Trim('"')
   $console = playwright-cli console
   $network = playwright-cli network
 
   if (-not $pageUrl.Contains('/result/')) {
     throw "烟测失败：点击开始生成后未跳转到结果页。当前地址：$pageUrl"
+  }
+
+  if (-not ($pageText.Contains('生成状态') -or $pageText.Contains('任务状态读取失败') -or $pageText.Contains('渲染结果已就绪'))) {
+    throw "烟测失败：结果页未出现预期状态文案。"
   }
 
   Write-Output 'SMOKE_OK'

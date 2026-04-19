@@ -20,3 +20,9 @@ async def save_result_image(task_id: str, data_url: str) -> str:
     file_path.write_bytes(image_bytes)
 
     return f"/outputs/{task_id}.png"
+
+
+async def delete_result_image(task_id: str) -> None:
+    file_path = OUTPUT_DIR / f"{task_id}.png"
+    if file_path.exists():
+        file_path.unlink()

@@ -27,6 +27,6 @@ build:
 migrate:
 	python scripts/migrate_json_to_sqlite.py
 
-# Local smoke test: clean ports, start frontend/backend, run Playwright create-task flow
+# Local smoke test: clean ports, start frontend/backend, run Playwright order->generate->result flow
 smoke-generate:
-	powershell -ExecutionPolicy Bypass -File scripts/playwright_smoke_generate.ps1
+	bash scripts/playwright_smoke_generate.sh

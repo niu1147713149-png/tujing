@@ -6,6 +6,7 @@ export type TaskStatus = 'queued' | 'processing' | 'succeeded' | 'failed'
 export type Task = {
   id: string
   groupId: string
+  orderId: string | null
   template: 'amazon' | 'detail' | 'poster'
   prompt: string
   note: string | null
@@ -25,10 +26,27 @@ export type TaskGroup = {
   createdAt: string
 }
 
+export type Model = {
+  id: string
+  name: string
+}
+
+export type ModelsResponse = {
+  models: Model[]
+  defaultModel: string
+}
+
 export function useTaskGroups() {
   return useQuery<TaskGroup[]>({
     queryKey: ['taskGroups'],
     queryFn: () => apiFetch('/api/tasks'),
+  })
+}
+
+export function useModels() {
+  return useQuery<ModelsResponse>({
+    queryKey: ['models'],
+    queryFn: () => apiFetch('/api/models'),
   })
 }
 
@@ -52,7 +70,7 @@ export function useGroupTasks(groupId: string | undefined, polling = false) {
 export function useCreateTask() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (body: { template: string; prompt: string; count: number; note?: string }) =>
+    mutationFn: (body: { template: string; prompt: string; count: number; note?: string; orderId?: string; modelId?: string }) =>
       apiFetch<{ taskId: string }>('/api/tasks', {
         method: 'POST',
         body: JSON.stringify(body),

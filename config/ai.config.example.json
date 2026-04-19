@@ -1,5 +1,24 @@
 {
-  "domain": "https://generativelanguage.googleapis.com",
-  "apiKey": "YOUR_GEMINI_API_KEY",
-  "modelId": "gemini-2.5-flash-image"
+  "models": [
+    {
+      "id": "gemini-2.5-flash-image-preview",
+      "name": "Flash (快速)",
+      "domain": "https://generativelanguage.googleapis.com",
+      "apiKey": "sk-flash-xxx"
+    },
+    {
+      "id": "gemini-2.5-pro-image-preview",
+      "name": "2.5 Pro (均衡)",
+      "domain": "https://generativelanguage.googleapis.com",
+      "apiKey": "sk-pro-xxx"
+    },
+    {
+      "id": "gemini-3-pro-image-preview",
+      "name": "3 Pro (高质量)",
+      "domain": "https://generativelanguage.googleapis.com",
+      "apiKey": "sk-3pro-xxx"
+    }
+  ],
+  "defaultModel": "gemini-2.5-flash-image-preview",
+  "batchTaskDelaySeconds": 5
 }

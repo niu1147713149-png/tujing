@@ -8,11 +8,25 @@ class Base(DeclarativeBase):
     pass
 
 
+class Order(Base):
+    __tablename__ = "orders"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    note: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[str] = mapped_column(String, nullable=False)
+    updated_at: Mapped[str] = mapped_column(String, nullable=False)
+
+    __table_args__ = (
+        Index("idx_orders_created_at", "created_at"),
+    )
+
+
 class Task(Base):
     __tablename__ = "tasks"
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     group_id: Mapped[str] = mapped_column(String, nullable=False)
+    order_id: Mapped[str | None] = mapped_column(String, nullable=True)
     template: Mapped[str] = mapped_column(String, nullable=False)
     prompt: Mapped[str] = mapped_column(Text, nullable=False)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -28,6 +42,7 @@ class Task(Base):
 
     __table_args__ = (
         Index("idx_tasks_group_id", "group_id"),
+        Index("idx_tasks_order_id", "order_id"),
         Index("idx_tasks_status", "status"),
         Index("idx_tasks_owner", "owner_id", "owner_type"),
         Index("idx_tasks_created_at", "created_at"),

@@ -47,12 +47,12 @@ export default function GeneratingLoader({ templateName }: GeneratingLoaderProps
           </div>
 
           <div className="mt-8 text-center">
-            <p className="tj-eyebrow">Canvas / Loading State</p>
+            <p className="tj-eyebrow">生成状态</p>
             <h2 className="mt-4 text-3xl font-medium tracking-tight text-white md:text-4xl">
               正在生成画面结构
             </h2>
             <p className="mt-4 text-sm leading-7 text-slate-400">{messages[messageIndex]}</p>
-            <p className="mt-3 text-xs uppercase tracking-[0.28em] text-slate-500">处理中 / {seconds}s</p>
+            <p className="mt-3 text-xs tracking-[0.2em] text-slate-500">已等待 {seconds} 秒</p>
           </div>
 
           <div className="mt-8 rounded-[24px] border border-white/[0.06] bg-white/[0.02] p-4">

@@ -1,4 +1,4 @@
-"""Task CRUD operations — ported from lib/task-store.ts."""
+"""Task CRUD operations for the current SQLite task store."""
 
 from __future__ import annotations
 
@@ -55,6 +55,7 @@ def _to_task_out(t: Task) -> TaskOut:
     return TaskOut(
         id=t.id,
         group_id=t.group_id or t.id,
+        order_id=t.order_id,
         template=t.template,
         prompt=_normalize_text(t.prompt, "历史提示词存在编码问题，请重新填写。") or "历史提示词存在编码问题，请重新填写。",
         note=_normalize_text(t.note, "历史备注存在编码问题。"),
@@ -68,11 +69,21 @@ def _to_task_out(t: Task) -> TaskOut:
     )
 
 
-async def create_task(template: str, prompt: str) -> TaskOut:
+async def create_task(
+    template: str,
+    prompt: str,
+    note: str | None = None,
+    order_id: str | None = None,
+    model_id: str | None = None,
+) -> TaskOut:
     now = _now_iso()
+    clean_note = note.strip() if note and note.strip() else None
     task = Task(
         id=_create_task_id(), group_id=_create_group_id(), template=template,
-        prompt=prompt, status="queued", created_at=now, updated_at=now,
+        prompt=prompt, note=clean_note, order_id=order_id,
+        provider_model=model_id,
+        owner_id=order_id or "local-default", owner_type="order" if order_id else "local",
+        status="queued", created_at=now, updated_at=now,
     )
     async with async_session() as session:
         session.add(task)
@@ -80,7 +91,14 @@ async def create_task(template: str, prompt: str) -> TaskOut:
     return _to_task_out(task)
 
 
-async def create_batch(template: str, prompt: str, count: int, note: str | None = None) -> list[TaskOut]:
+async def create_batch(
+    template: str,
+    prompt: str,
+    count: int,
+    note: str | None = None,
+    order_id: str | None = None,
+    model_id: str | None = None,
+) -> list[TaskOut]:
     if count < 2 or count > 4:
         raise ValueError("批量生成数量必须在 2 到 4 张之间。")
     now = _now_iso()
@@ -90,7 +108,9 @@ async def create_batch(template: str, prompt: str, count: int, note: str | None 
     for _ in range(count):
         tasks.append(Task(
             id=_create_task_id(), group_id=group_id, template=template,
-            prompt=prompt, note=clean_note,
+            prompt=prompt, note=clean_note, order_id=order_id,
+            provider_model=model_id,
+            owner_id=order_id or "local-default", owner_type="order" if order_id else "local",
             status="queued", created_at=now, updated_at=now,
         ))
     async with async_session() as session:
@@ -113,6 +133,16 @@ async def get_tasks_by_group(group_id: str) -> list[TaskOut]:
         )
         tasks = result.scalars().all()
     return [_to_task_out(t) for t in tasks]
+
+
+async def list_pending_task_ids() -> list[str]:
+    async with async_session() as session:
+        result = await session.execute(
+            select(Task.id)
+            .where(Task.status.in_(("queued", "processing")))
+            .order_by(Task.order_id.is_(None).asc(), Task.created_at.desc(), Task.id.desc())
+        )
+        return list(result.scalars().all())
 
 
 async def list_task_groups(limit: int = 50) -> list[TaskGroupOut]:
@@ -153,7 +183,7 @@ async def update_task(task_id: str, **patch: object) -> TaskOut | None:
 
 
 async def reset_stuck_tasks() -> int:
-    """Reset tasks stuck in 'processing' back to 'queued' on startup."""
+    """Reset tasks stuck in processing back to queued on startup."""
     async with async_session() as session:
         result = await session.execute(
             update(Task).where(Task.status == "processing").values(status="queued", updated_at=_now_iso())

@@ -1,4 +1,4 @@
-"""All /api/tasks/* endpoints — matches existing Next.js API contract."""
+"""All /api/tasks/* endpoints for the current FastAPI task workflow."""
 
 from __future__ import annotations
 
@@ -9,14 +9,18 @@ import zipfile
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
+from app.config import load_ai_config
 from app.database import OUTPUT_DIR
 from app.schemas import (
     CreateBatchResponse,
     CreateSingleResponse,
     CreateTaskRequest,
+    ModelOut,
+    ModelsResponse,
     TaskGroupOut,
     TaskOut,
 )
+from app.services.order_store import get_order
 from app.services.task_runner import run_batch, run_task
 from app.services.task_store import (
     create_batch,
@@ -26,11 +30,21 @@ from app.services.task_store import (
     list_task_groups,
 )
 
-router = APIRouter(prefix="/api/tasks")
+router = APIRouter()
+tasks_router = APIRouter(prefix="/api/tasks")
+
+
+@router.get("/api/models")
+async def list_models():
+    config = load_ai_config()
+    return ModelsResponse(
+        models=[ModelOut(id=model.id, name=model.name) for model in config.models],
+        default_model=config.default_model,
+    ).model_dump(by_alias=True)
 
 
 # POST /api/tasks — create single or batch
-@router.post("")
+@tasks_router.post("")
 async def create_tasks(body: CreateTaskRequest):
     if not body.prompt or not body.prompt.strip():
         raise HTTPException(400, "缺少模板或提示词。")
@@ -40,13 +54,24 @@ async def create_tasks(body: CreateTaskRequest):
         raise HTTPException(400, "数量必须在 1 到 4 之间。")
 
     prompt = body.prompt.strip()
+    order_id = body.order_id.strip()
+    if not order_id:
+        raise HTTPException(400, "缺少订单 ID。")
+    if not await get_order(order_id):
+        raise HTTPException(404, "订单不存在。")
+    model_id = body.model_id.strip() if body.model_id and body.model_id.strip() else None
+    if model_id:
+        try:
+            load_ai_config().get_model(model_id)
+        except RuntimeError as exc:
+            raise HTTPException(400, str(exc)) from exc
 
     if body.count == 1:
-        task = await create_task(body.template, prompt)
+        task = await create_task(body.template, prompt, body.note, order_id, model_id)
         asyncio.create_task(run_task(task.id))
         return CreateSingleResponse(task_id=task.id, status=task.status).model_dump(by_alias=True)
 
-    tasks = await create_batch(body.template, prompt, body.count, body.note)
+    tasks = await create_batch(body.template, prompt, body.count, body.note, order_id, model_id)
     asyncio.create_task(run_batch([t.id for t in tasks]))
     return CreateBatchResponse(
         group_id=tasks[0].group_id, task_id=tasks[0].id, count=len(tasks),
@@ -54,14 +79,14 @@ async def create_tasks(body: CreateTaskRequest):
 
 
 # GET /api/tasks — list task groups
-@router.get("")
+@tasks_router.get("")
 async def list_groups():
     groups = await list_task_groups(50)
     return [g.model_dump(by_alias=True) for g in groups]
 
 
 # GET /api/tasks/group/{groupId}  — must be before /{task_id}
-@router.get("/group/{group_id}")
+@tasks_router.get("/group/{group_id}")
 async def get_group_tasks(group_id: str):
     tasks = await get_tasks_by_group(group_id)
     if not tasks:
@@ -70,7 +95,7 @@ async def get_group_tasks(group_id: str):
 
 
 # GET /api/tasks/groups/{groupId}/download  — must be before /{task_id}
-@router.get("/groups/{group_id}/download")
+@tasks_router.get("/groups/{group_id}/download")
 async def download_group_zip(group_id: str):
     tasks = await get_tasks_by_group(group_id)
     succeeded = [t for t in tasks if t.status == "succeeded" and t.result_url]
@@ -94,7 +119,7 @@ async def download_group_zip(group_id: str):
 
 
 # GET /api/tasks/{taskId}  — dynamic, must come after all static prefixes
-@router.get("/{task_id}")
+@tasks_router.get("/{task_id}")
 async def get_single_task(task_id: str):
     task = await get_task(task_id)
     if not task:
@@ -103,7 +128,7 @@ async def get_single_task(task_id: str):
 
 
 # POST /api/tasks/{taskId}/regenerate
-@router.post("/{task_id}/regenerate")
+@tasks_router.post("/{task_id}/regenerate")
 async def regenerate_task(task_id: str):
     source = await get_task(task_id)
     if not source:
@@ -114,13 +139,29 @@ async def regenerate_task(task_id: str):
     count = len(group_tasks)
 
     if count <= 1:
-        task = await create_task(source.template, source.prompt)
+        task = await create_task(
+            source.template,
+            source.prompt,
+            source.note,
+            source.order_id,
+            source.provider_model,
+        )
         asyncio.create_task(run_task(task.id))
         return CreateSingleResponse(task_id=task.id, status=task.status).model_dump(by_alias=True)
 
     note = next((t.note for t in group_tasks if t.note), None)
-    tasks = await create_batch(source.template, source.prompt, count, note)
+    tasks = await create_batch(
+        source.template,
+        source.prompt,
+        count,
+        note,
+        source.order_id,
+        source.provider_model,
+    )
     asyncio.create_task(run_batch([t.id for t in tasks]))
     return CreateBatchResponse(
         group_id=tasks[0].group_id, task_id=tasks[0].id, count=len(tasks),
     ).model_dump(by_alias=True)
+
+
+router.include_router(tasks_router)

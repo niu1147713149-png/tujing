@@ -20,3 +20,4 @@ frontend-dev.err.log
 pw-*.txt
 **/__pycache__/
 *.pyc
+.playwright-winchrome/
